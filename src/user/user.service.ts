@@ -43,11 +43,53 @@ export class UserService {
     };
   }
 
-  // we'll return back to make pagination.
-  async findAll(): Promise<{ status: number; data: User[] }> {
+  async findAll(
+    query,
+  ): Promise<{ status: number; length: number; data: User[] }> {
+    const { _limit, skip, sort, name, email, role } = query;
+
+    if (_limit && Number.isNaN(+_limit)) {
+      throw new HttpException('Invalid _limit query parameter', 400);
+    }
+
+    if (skip && Number.isNaN(+skip)) {
+      throw new HttpException('Invalid skip query parameter', 400);
+    }
+
+    if (sort && !['asc', 'desc'].includes(sort)) {
+      throw new HttpException('Sort must be either asc or desc', 400);
+    }
+
+    if (role && !['admin', 'user'].includes(role)) {
+      throw new HttpException('Role must be either admin or user', 400);
+    }
+
+    const filter: Record<string, any> = {};
+
+    if (name) {
+      filter.name = new RegExp(name, 'i');
+    }
+
+    if (email) {
+      filter.email = new RegExp(email, 'i');
+    }
+
+    if (role) {
+      filter.role = role;
+    }
+
+    const users = await this.userModel
+      .find(filter)
+      .skip(+skip || 0)
+      .limit(+_limit || 10)
+      .sort(sort ? { name: sort } : {})
+      .select('-password -__v')
+      .exec();
+
     return {
       status: 200,
-      data: await this.userModel.find().select('-password -__v'),
+      length: users.length,
+      data: users,
     };
   }
 
