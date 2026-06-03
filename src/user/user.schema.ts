@@ -58,7 +58,7 @@ export class User {
     type: Boolean,
     enum: [true, false],
   })
-  active: string;
+  active: boolean;
 
   @Prop({
     type: String,

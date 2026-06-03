@@ -9,6 +9,7 @@ import {
   ValidationPipe,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -20,6 +21,7 @@ import { Roles } from './decorators/Roles.decorator';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // For Admin
   @Post()
   @Roles(['admin'])
   @Post()
@@ -61,5 +63,36 @@ export class UserController {
   @UseGuards(AuthGuard)
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
+  }
+}
+
+@Controller('userme')
+export class UserMeController {
+  constructor(private readonly userService: UserService) {}
+
+  // For User
+  @Get()
+  @UseGuards(AuthGuard)
+  @Roles(['user', 'admin'])
+  getMe(@Req() req) {
+    return this.userService.getMe(req.user);
+  }
+
+  @Patch()
+  @UseGuards(AuthGuard)
+  @Roles(['user', 'admin'])
+  updateMe(
+    @Req() req,
+    @Body(new ValidationPipe({ forbidUnknownValues: true }))
+    updateUserDto: UpdateUserDto,
+  ) {
+    return this.userService.updateMe(req.user, updateUserDto);
+  }
+
+  @Delete()
+  @UseGuards(AuthGuard)
+  @Roles(['user'])
+  deleteMe(@Req() req) {
+    return this.userService.deleteMe(req.user);
   }
 }

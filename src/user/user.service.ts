@@ -15,6 +15,8 @@ export class UserService {
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
   ) {}
+
+  // For Admin
   async create(
     createUserDto: CreateUserDto,
   ): Promise<{ status: number; messages: string; data: User }> {
@@ -154,6 +156,61 @@ export class UserService {
     return {
       status: 200,
       message: 'User deleted successfully',
+    };
+  }
+
+  // For User
+  async getMe(payload) {
+    console.log(payload);
+
+    if (!payload._id) {
+      throw new NotFoundException('User not found');
+    }
+
+    const user = await this.userModel
+      .findById(payload._id)
+      .select('-password -__v');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return {
+      status: 200,
+      data: user,
+    };
+  }
+
+  async updateMe(payload, updateUserDto: UpdateUserDto) {
+    if (!payload._id) {
+      throw new NotFoundException('User not found');
+    }
+    const user = await this.userModel
+      .findByIdAndUpdate(payload._id, updateUserDto, { new: true })
+      .select('-password -__v');
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return {
+      status: 200,
+      message: 'User updated successfully',
+      data: user,
+    };
+  }
+
+  async deleteMe(payload) {
+    if (!payload._id) {
+      throw new NotFoundException('User not found');
+    }
+    const user = await this.userModel.findById(payload._id);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      status: 200,
+      message: 'User deleted successfully',
+      data: await this.update(payload._id, { active: false }),
     };
   }
 }
