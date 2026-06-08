@@ -1,5 +1,7 @@
+// Imports
 import { MinLength, MaxLength, IsString, IsEmail } from 'class-validator';
 
+// Signup DTO
 export class SignupDto {
   @MinLength(3, { message: 'Name must be at least 3 characters' })
   @MaxLength(30, { message: 'Name must be at most 30 characters' })
@@ -18,6 +20,7 @@ export class SignupDto {
   password: string;
 }
 
+// Signin DTO
 export class SigninDto {
   // Email
   @IsString({ message: 'Email must be a string' })
@@ -29,4 +32,12 @@ export class SigninDto {
   @MaxLength(20, { message: 'Password must be at most 20 characters' })
   @IsString({ message: 'Password must be a string' })
   password: string;
+}
+
+// Reset Password DTO
+export class ResetPasswordDto {
+  // Email
+  @IsString({ message: 'Email must be a string' })
+  @IsEmail({}, { message: 'Email must be a valid email address' })
+  email: string;
 }
