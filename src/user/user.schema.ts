@@ -29,7 +29,6 @@ export class User {
   password: string;
 
   @Prop({
-    required: true,
     type: String,
     enum: ['admin', 'user'],
   })
@@ -41,9 +40,9 @@ export class User {
   avatar: string;
 
   @Prop({
-    type: Number,
+    type: String,
   })
-  age: number;
+  age: string;
 
   @Prop({
     type: String,
@@ -59,7 +58,7 @@ export class User {
     type: Boolean,
     enum: [true, false],
   })
-  active: string;
+  active: boolean;
 
   @Prop({
     type: String,
