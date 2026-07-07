@@ -32,14 +32,14 @@ export class CouponService {
   }
 
   async findAll() {
-    const Coupon = await this.couponModel.find();
+    const coupons = await this.couponModel.find();
 
     return {
       status: 200,
-      message: Coupon.length > 0 ? 'Coupons Found' : 'No Coupons yet!',
-      length: Coupon.length,
-      isEmpty: Coupon.length > 0 ? 'false' : 'true',
-      data: Coupon,
+      message: coupons.length > 0 ? 'Coupons Found' : 'No Coupons yet!',
+      length: coupons.length,
+      isEmpty: coupons.length > 0 ? 'false' : 'true',
+      data: coupons,
     };
   }
 
