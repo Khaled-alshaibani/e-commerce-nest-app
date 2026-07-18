@@ -7,15 +7,16 @@ import {
   IsUrl,
   Max,
   Min,
+  MinLength,
 } from 'class-validator';
 
 export class CreateProductDto {
   @IsString({ message: 'Title must be a string' })
-  @Min(3, { message: 'Title must be at least 3 characters long' })
+  @MinLength(3, { message: 'Title must be at least 3 characters long' })
   title: string;
 
   @IsString({ message: 'Description must be a string' })
-  @Min(20, { message: 'Description must be at least 20 characters long' })
+  @MinLength(20, { message: 'Description must be at least 20 characters long' })
   description: string;
 
   @IsNumber({}, { message: 'Quantity must be a number' })
@@ -28,7 +29,7 @@ export class CreateProductDto {
 
   @IsArray({ message: 'Images must be an Array' })
   @IsOptional()
-  images: string;
+  images: string[];
 
   @IsNumber({}, { message: 'Sold must be a number' })
   @IsOptional()
@@ -39,6 +40,7 @@ export class CreateProductDto {
   @Max(2000000, { message: 'Price must be at must 2,000,000 Y.R.' })
   price: number;
 
+  @IsOptional()
   @IsNumber({}, { message: 'Price after discount must be a number' })
   @Min(100, { message: 'Price after discount must be at least 100 Y.R.' })
   @Max(2000000, {
@@ -48,7 +50,7 @@ export class CreateProductDto {
 
   @IsArray({ message: 'Colors must be an Array' })
   @IsOptional()
-  colors: string;
+  colors: string[];
 
   @IsMongoId({ message: 'Category must be a valid MongoID' })
   @IsString({ message: 'Category must be a string' })

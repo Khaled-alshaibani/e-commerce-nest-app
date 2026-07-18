@@ -7,7 +7,7 @@ import { SubCategory } from 'src/sub-category/sub-category.schema';
 export type productDocument = HydratedDocument<Product>;
 
 @Schema({ timestamps: true })
-class Product {
+export class Product {
   @Prop({
     type: String,
     required: true,
