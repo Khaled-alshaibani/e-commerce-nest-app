@@ -130,10 +130,6 @@ export class ProductService {
       findData.category = query.category.toString();
     }
 
-    console.log(query);
-    console.log(requestQuery);
-    console.log(findData);
-
     const products = await this.productModel
       .find(findData)
       .limit(limit)
