@@ -1,9 +1,18 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Review } from './review.schema';
 import { Model } from 'mongoose';
+
+interface newUpdateReviewDto extends UpdateReviewDto {
+  user: string;
+}
 
 @Injectable()
 export class ReviewService {
@@ -24,6 +33,8 @@ export class ReviewService {
       );
     }
 
+    // TODO: Rating
+
     const newReview = await (
       await this.reviewModel.create({
         ...createReviewDto,
@@ -42,15 +53,74 @@ export class ReviewService {
     return `This action returns all review`;
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} review`;
+  async findOne(user_id: string) {
+    const review = await this.reviewModel
+      .find({ user: user_id })
+      .populate('user product', 'name role email title rating')
+      .select('-__v');
+
+    if (!review) {
+      throw new NotFoundException('Review is not found');
+    }
+
+    return {
+      status: 200,
+      message: 'Review found successfully',
+      data: review,
+    };
   }
 
-  update(id: string, updateReviewDto: UpdateReviewDto) {
-    return `This action updates a #${id} review`;
+  async update(
+    id: string,
+    updateReviewDto: newUpdateReviewDto,
+    user_id: string,
+  ) {
+    const review = await this.reviewModel.findById(id);
+
+    if (!review) {
+      throw new NotFoundException('Review Not Found');
+    }
+
+    if (user_id.toString() !== review.user.toString()) {
+      throw new UnauthorizedException();
+    }
+
+    // TODO: Rating
+
+    const updatedReview = await this.reviewModel
+      .findByIdAndUpdate(
+        id,
+        {
+          ...updateReviewDto,
+          user: user_id,
+          product: updateReviewDto.product,
+        },
+        { new: true },
+      )
+      .select('-__v');
+
+    return {
+      status: 200,
+      message: 'Review updated successfully',
+      data: updatedReview,
+    };
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} review`;
+  async remove(id: string, user_id: string) {
+    const review = await this.reviewModel.findById(id);
+
+    if (!review) {
+      throw new NotFoundException('Review Not Found');
+    }
+
+    if (user_id.toString() !== review.user.toString()) {
+      throw new UnauthorizedException();
+    }
+
+    await this.reviewModel.findByIdAndDelete(id);
+    return {
+      status: 200,
+      message: 'Review Deleted Successfully',
+    };
   }
 }

@@ -40,6 +40,8 @@ export class ReviewController {
     return this.reviewService.create(createReviewDto, user_id);
   }
 
+  @Roles(['admin'])
+  @UseGuards(AuthGuard)
   @Get()
   findAll() {
     return this.reviewService.findAll();
@@ -51,12 +53,40 @@ export class ReviewController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
-    return this.reviewService.update(id, updateReviewDto);
+  @Roles(['user'])
+  @UseGuards(AuthGuard)
+  update(
+    @Param('id') id: string,
+    @Body(new ValidationPipe({ forbidNonWhitelisted: true, whitelist: true }))
+    updateReviewDto: UpdateReviewDto,
+    @Req() req,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    if (req.user.role.toLowerCase() === 'admin') {
+      throw new UnauthorizedException();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const user_id = req.user._id;
+    // @typescript-eslint/no-unsafe-argument
+    // eslint-disable-next-line
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return this.reviewService.update(id, updateReviewDto, user_id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reviewService.remove(id);
+  @Roles(['user'])
+  @UseGuards(AuthGuard)
+  remove(@Param('id') id: string, @Req() req) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    if (req.user.role.toLowerCase() === 'admin') {
+      throw new UnauthorizedException();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const user_id = req.user._id;
+    // eslint-disable-next-line
+    return this.reviewService.remove(id, user_id);
   }
 }
