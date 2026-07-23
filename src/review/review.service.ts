@@ -9,6 +9,7 @@ import { UpdateReviewDto } from './dto/update-review.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Review } from './review.schema';
 import { Model } from 'mongoose';
+import { Product } from 'src/product/product.schema';
 
 interface newUpdateReviewDto extends UpdateReviewDto {
   user: string;
@@ -18,6 +19,7 @@ interface newUpdateReviewDto extends UpdateReviewDto {
 export class ReviewService {
   constructor(
     @InjectModel(Review.name) private readonly reviewModel: Model<Review>,
+    @InjectModel(Product.name) private readonly productModel: Model<Product>,
   ) {}
 
   async create(createReviewDto: CreateReviewDto, user_id: string) {
@@ -33,7 +35,11 @@ export class ReviewService {
       );
     }
 
-    // TODO: Rating
+    const product = await this.productModel.findById(createReviewDto.product);
+
+    if (!product) {
+      throw new NotFoundException('Product Not Found!');
+    }
 
     const newReview = await (
       await this.reviewModel.create({
@@ -41,6 +47,26 @@ export class ReviewService {
         user: user_id,
       })
     ).populate('product user', 'title description imageCover name email');
+
+    const reviewsOnSignleProduct = await this.reviewModel
+      .find({
+        product: createReviewDto.product,
+      })
+      .select('rating');
+
+    const ratingQuantity = reviewsOnSignleProduct.length;
+    let totalRatings: number = 0;
+
+    for (let i = 0; i < ratingQuantity; i++) {
+      totalRatings += reviewsOnSignleProduct[i].rating;
+    }
+
+    const ratingAverages = totalRatings / ratingQuantity;
+
+    await this.productModel.findByIdAndUpdate(createReviewDto.product, {
+      ratingsAverage: ratingAverages,
+      ratingsQuantity: ratingQuantity,
+    });
 
     return {
       status: 200,
@@ -81,11 +107,35 @@ export class ReviewService {
       throw new NotFoundException('Review Not Found');
     }
 
+    const product = await this.productModel.findById(updateReviewDto.product);
+
+    if (!product) {
+      throw new NotFoundException('Product Not Found!');
+    }
+
     if (user_id.toString() !== review.user.toString()) {
       throw new UnauthorizedException();
     }
 
-    // TODO: Rating
+    const reviewsOnSignleProduct = await this.reviewModel
+      .find({
+        product: updateReviewDto.product,
+      })
+      .select('rating');
+
+    const ratingQuantity = reviewsOnSignleProduct.length;
+    let totalRatings: number = 0;
+
+    for (let i = 0; i < ratingQuantity; i++) {
+      totalRatings += reviewsOnSignleProduct[i].rating;
+    }
+
+    const ratingAverages = totalRatings / ratingQuantity;
+
+    await this.productModel.findByIdAndUpdate(updateReviewDto.product, {
+      ratingAverages,
+      ratingQuantity,
+    });
 
     const updatedReview = await this.reviewModel
       .findByIdAndUpdate(
@@ -118,6 +168,26 @@ export class ReviewService {
     }
 
     await this.reviewModel.findByIdAndDelete(id);
+
+    const reviewsOnSignleProduct = await this.reviewModel
+      .find({
+        product: review.product,
+      })
+      .select('rating');
+
+    const ratingQuantity = reviewsOnSignleProduct.length;
+    let totalRatings: number = 0;
+
+    for (let i = 0; i < ratingQuantity; i++) {
+      totalRatings += reviewsOnSignleProduct[i].rating;
+    }
+
+    const ratingAverages = totalRatings / ratingQuantity;
+
+    await this.productModel.findByIdAndUpdate(review.product, {
+      ratingAverages,
+      ratingQuantity,
+    });
     return {
       status: 200,
       message: 'Review Deleted Successfully',
