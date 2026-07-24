@@ -40,11 +40,9 @@ export class ReviewController {
     return this.reviewService.create(createReviewDto, user_id);
   }
 
-  @Roles(['admin'])
-  @UseGuards(AuthGuard)
-  @Get()
-  findAll() {
-    return this.reviewService.findAll();
+  @Get('get-all/:id')
+  findAll(@Param('id') product_id: string) {
+    return this.reviewService.findAll(product_id);
   }
 
   @Get(':id')
