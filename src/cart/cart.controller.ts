@@ -21,7 +21,7 @@ import { AuthGuard } from 'src/user/guards/Auth.guard';
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
-  @Post()
+  @Post(':productId')
   @Roles(['user'])
   @UseGuards(AuthGuard)
   create(
